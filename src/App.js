@@ -4,6 +4,7 @@ import snakeBg from './images/snake-bg.png';
 import snakeTitle from './images/snake-title.png';
 import snakeHead from './images/snake-head.png';
 import snakeBody from './images/snake-body.png';
+import snakeByline from './images/snake-byline1.png';
 import backgroundMusic from './audio/snake-game-music.mp3';
 
 function App() {
@@ -216,6 +217,7 @@ function TitleScreen({ onStartGame, highScores }) {
   
   return (
     <div className="title-screen" style={{ backgroundImage: `url(${snakeBg})` }}>
+      <img src={snakeByline} alt="Snake Game Byline" className="title-byline" />
       <div className="title-content">
         <img src={snakeTitle} alt="Snake Game" className="title-logo" />
         
