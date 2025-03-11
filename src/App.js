@@ -92,9 +92,13 @@ function App() {
         newHighScore = true;
       }
       
+      // Convert percentage to a number and round to 2 decimal places for consistent comparison
+      const currentFilled = parseFloat(newHighScores[boardStyleName].filled) || 0;
+      const newFilled = parseFloat(percentage) || 0;
+      
       // Check if filled percentage is higher than current high percentage
-      if (percentage > newHighScores[boardStyleName].filled) {
-        newHighScores[boardStyleName].filled = percentage;
+      if (newFilled > currentFilled) {
+        newHighScores[boardStyleName].filled = Math.round(newFilled * 100) / 100;
         newHighScore = true;
       }
       
@@ -250,7 +254,7 @@ function TitleScreen({ onStartGame, highScores }) {
                       </div>
                       <div className="high-score-item">
                         <span className="high-score-label">Best Fill:</span> 
-                        <span className="high-score-value">{highScore.filled}%</span>
+                        <span className="high-score-value">{parseFloat(highScore.filled).toFixed(2)}%</span>
                       </div>
                     </div>
                     <div className="play-now-badge">PLAY NOW</div>
@@ -285,6 +289,9 @@ function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, high
   // Get the index of the current board style
   const currentBoardIndex = boardStyles.findIndex(b => b.name === boardStyle);
   
+  // Format filled percentage for display (round to 2 decimal places)
+  const formattedFilledPercentage = Math.round(filledPercentage * 100) / 100;
+  
   return (
     <div className="game-over-screen">
       <h1>Game Over</h1>
@@ -303,7 +310,7 @@ function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, high
         
         <div className="stat-card">
           <div className="stat-title">Board Filled</div>
-          <div className="stat-value">{filledPercentage}%</div>
+          <div className="stat-value">{formattedFilledPercentage}%</div>
         </div>
         
         <div className="stat-card">
@@ -332,7 +339,7 @@ function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, high
                   </div>
                   <div className="high-score-item">
                     <span className="high-score-label">Best Fill:</span> 
-                    <span className="high-score-value">{highScore.filled}%</span>
+                    <span className="high-score-value">{parseFloat(highScore.filled).toFixed(2)}%</span>
                   </div>
                 </div>
                 <div className="play-now-badge">PLAY NOW</div>
@@ -411,7 +418,8 @@ function Game({ onGameOver, selectedBoardStyle }) {
         }
       }
       const percentage = (snake.length / emptyCells) * 100;
-      setFilledPercentage(percentage.toFixed(2));
+      // Store as a number, not a string (don't use toFixed here)
+      setFilledPercentage(Math.round(percentage * 100) / 100);
     }
   }, [snake, boardMap, boardWidth, boardHeight]);
   
@@ -519,7 +527,7 @@ function Game({ onGameOver, selectedBoardStyle }) {
   
   return (
     <div className="game-container">
-      <div className="score-display">Score: {score} | Filled: {filledPercentage}% | Board: {getBoardStyleName(boardMap.boardStyle)}</div>
+      <div className="score-display">Score: {score} | Filled: {filledPercentage.toFixed(2)}% | Board: {getBoardStyleName(boardMap.boardStyle)}</div>
       {isPaused && <div className="pause-overlay">PAUSED<br /><span className="pause-hint">Press SPACE to resume</span></div>}
       <div className="game-board">
         {Array.from({ length: boardHeight }).map((_, rowIndex) => (
