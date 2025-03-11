@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './App.css';
 import snakeBg from './images/snake-bg.png';
 import snakeTitle from './images/snake-title.png';
 import snakeHead from './images/snake-head.png';
 import snakeBody from './images/snake-body.png';
+import backgroundMusic from './audio/snake-game-music.mp3';
 
 function App() {
   const [gameState, setGameState] = useState('title'); // title, playing, gameOver
@@ -13,6 +14,8 @@ function App() {
   const [isHighScore, setIsHighScore] = useState(false);
   const [selectedBoardStyle, setSelectedBoardStyle] = useState(null); // Add state for selected board style
   const [resetKey, setResetKey] = useState(0); // Add a key to force Game component to remount
+  const [isMuted, setIsMuted] = useState(false); // Add state for audio mute
+  const audioRef = useRef(null); // Reference to the audio element
   const [highScores, setHighScores] = useState(() => {
     // Initialize high scores from localStorage or with defaults
     const storedScores = localStorage.getItem('snakeHighScores');
@@ -26,6 +29,37 @@ function App() {
       'Blob': { score: 0, filled: 0 }
     };
   });
+
+  // Initialize mute state from localStorage
+  useEffect(() => {
+    const savedMuteState = localStorage.getItem('snakeMuted');
+    if (savedMuteState) {
+      setIsMuted(JSON.parse(savedMuteState));
+    }
+  }, []);
+
+  // Toggle mute function
+  const toggleMute = () => {
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+    localStorage.setItem('snakeMuted', JSON.stringify(newMuteState));
+    
+    if (audioRef.current) {
+      audioRef.current.muted = newMuteState;
+    }
+  };
+
+  // Handle audio when component mounts
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5; // Set volume to 50%
+      audioRef.current.muted = isMuted;
+      audioRef.current.play().catch(e => {
+        // Auto-play was prevented, user needs to interact first
+        console.log("Audio auto-play was prevented. User needs to interact with the page first.");
+      });
+    }
+  }, [isMuted]);
 
   const startGame = (boardStyleIndex) => {
     // If a specific board style is selected, use it
@@ -114,6 +148,23 @@ function App() {
 
   return (
     <div className="App">
+      {/* Audio element */}
+      <audio 
+        ref={audioRef}
+        src={backgroundMusic}
+        loop
+        preload="auto"
+      />
+      
+      {/* Mute button */}
+      <button 
+        className="mute-button" 
+        onClick={toggleMute}
+        title={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? "🔇" : "🔊"}
+      </button>
+
       {gameState === 'title' && (
         <TitleScreen 
           onStartGame={startGame} 
