@@ -798,3 +798,172 @@
 .mute-button:active {
   transform: scale(0.95);
 }
+
+/* View Final Board Button */
+.view-board-button {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  margin: 1rem auto;
+  background: linear-gradient(45deg, #9c27b0, #673ab7);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.view-board-button:hover {
+  background: linear-gradient(45deg, #7b1fa2, #512da8);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.view-board-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Final Board View */
+.final-board-view {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #232323;
+  z-index: 10;
+}
+
+.final-board-view h3 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.small-stats {
+  margin-bottom: 1rem;
+  width: auto;
+  display: flex;
+  gap: 20px;
+}
+
+.final-game-board {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #444;
+  background-color: #121212;
+  padding: 5px;
+  border-radius: 5px;
+  width: 90%;
+  height: 75vh;
+  overflow: auto;
+  margin-bottom: 20px;
+}
+
+/* Make board cells larger for better visibility */
+.final-game-board .board-cell {
+  width: 24px;
+  height: 24px;
+  margin: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+/* Empty cells should be visible but subtle */
+.final-game-board .board-cell:not(.wall):not(.obstacle):not(.final-snake-head):not(.final-snake-body) {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhance snake head appearance */
+.final-snake-head {
+  background-color: #4CAF50 !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.8) !important;
+  animation: pulse-head 1.5s infinite alternate;
+  transform: scale(1.2);
+  z-index: 3;
+  position: relative;
+}
+
+/* Enhance snake body appearance */
+.final-snake-body {
+  background-color: #8BC34A !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 8px rgba(139, 195, 74, 0.6) !important;
+  z-index: 2;
+  position: relative;
+}
+
+/* Enhanced wall appearance */
+.final-game-board .wall {
+  background-color: #607D8B !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  border: none;
+}
+
+/* Enhanced obstacle appearance */
+.final-game-board .obstacle {
+  background: linear-gradient(135deg, #FF5722, #F44336) !important;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+  border: none;
+}
+
+/* Remove unnecessary overlay styles that we no longer need */
+.final-board-overlay {
+  display: none;
+}
+
+.final-board-container {
+  display: none;
+}
+
+@keyframes pulse-head {
+  from { box-shadow: 0 0 8px rgba(76, 175, 80, 0.7); }
+  to { box-shadow: 0 0 15px rgba(76, 175, 80, 1); }
+}
+
+.close-board-button {
+  padding: 8px 16px;
+  font-size: 1rem;
+  background: linear-gradient(45deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-board-button:hover {
+  background: linear-gradient(45deg, #e53935, #c62828);
+  transform: translateY(-2px);
+}
+
+.close-board-button:active {
+  transform: translateY(1px);
+}
+
+/* Make rows flex for proper sizing */
+.final-game-board .board-row {
+  display: flex;
+  justify-content: center;
+}

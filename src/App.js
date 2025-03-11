@@ -17,6 +17,8 @@ function App() {
   const [resetKey, setResetKey] = useState(0); // Add a key to force Game component to remount
   const [isMuted, setIsMuted] = useState(false); // Add state for audio mute
   const audioRef = useRef(null); // Reference to the audio element
+  const [finalBoard, setFinalBoard] = useState(null); // Store the final board state
+  const [finalSnake, setFinalSnake] = useState([]); // Store the final snake position
   const [highScores, setHighScores] = useState(() => {
     // Initialize high scores from localStorage or with defaults
     const storedScores = localStorage.getItem('snakeHighScores');
@@ -69,11 +71,13 @@ function App() {
     setResetKey(prev => prev + 1);
   };
 
-  const handleGameOver = (score, percentage, style) => {
+  const handleGameOver = (score, percentage, style, board, snake) => {
     const boardStyleName = getBoardStyleName(style) || "Standard";
     setFinalScore(score);
     setFilledPercentage(percentage || 0);
     setBoardStyle(boardStyleName);
+    setFinalBoard(board);
+    setFinalSnake(snake);
     
     // Check if this is a new high score for this board type
     let newHighScore = false;
@@ -202,6 +206,8 @@ function App() {
           highScores={highScores}
           onRestart={restartGame} 
           onBackToTitle={backToTitle} 
+          finalBoard={finalBoard}
+          finalSnake={finalSnake}
         />
       )}
     </div>
@@ -277,7 +283,9 @@ function TitleScreen({ onStartGame, highScores }) {
   );
 }
 
-function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, highScores, onRestart, onBackToTitle }) {
+function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, highScores, onRestart, onBackToTitle, finalBoard, finalSnake }) {
+  const [showFinalBoard, setShowFinalBoard] = useState(false);
+  
   // Array of available board styles with descriptions
   const boardStyles = [
     { name: 'Gapped Border', description: 'Classic border with random gaps' },
@@ -292,70 +300,131 @@ function GameOverScreen({ score, filledPercentage, boardStyle, isHighScore, high
   // Format filled percentage for display (round to 2 decimal places)
   const formattedFilledPercentage = Math.round(filledPercentage * 100) / 100;
   
+  // Toggle showing final board view
+  const toggleFinalBoard = () => {
+    setShowFinalBoard(!showFinalBoard);
+  };
+  
   return (
     <div className="game-over-screen">
-      <h1>Game Over</h1>
-      
-      {isHighScore && (
-        <div className="new-high-score">
-          🏆 New High Score! 🏆
+      {!showFinalBoard ? (
+        // Game Over Content
+        <>
+          <h1>Game Over</h1>
+          
+          {isHighScore && (
+            <div className="new-high-score">
+              🏆 New High Score! 🏆
+            </div>
+          )}
+          
+          <div className="game-stats">
+            <div className="stat-card">
+              <div className="stat-title">Your Score</div>
+              <div className="stat-value">{score}</div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-title">Board Filled</div>
+              <div className="stat-value">{formattedFilledPercentage}%</div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-title">Board Type</div>
+              <div className="stat-value">{boardStyle}</div>
+            </div>
+          </div>
+          
+          <button className="view-board-button" onClick={toggleFinalBoard}>
+            <span className="button-icon">🔍</span> View Final Board
+          </button>
+          
+          <div className="board-selector">
+            <h3>Select Board to Play Again</h3>
+            <div className="board-options">
+              {boardStyles.map((style, index) => {
+                const highScore = highScores[style.name] || { score: 0, filled: 0 };
+                return (
+                  <div 
+                    key={index} 
+                    className={`board-option ${currentBoardIndex === index ? 'current-board' : ''}`}
+                    onClick={() => onRestart(index)}
+                  >
+                    <div className="board-option-name">{style.name}</div>
+                    <div className="board-option-desc">{style.description}</div>
+                    <div className="high-score-details">
+                      <div className="high-score-item">
+                        <span className="high-score-label">Best Score:</span> 
+                        <span className="high-score-value">{highScore.score}</span>
+                      </div>
+                      <div className="high-score-item">
+                        <span className="high-score-label">Best Fill:</span> 
+                        <span className="high-score-value">{parseFloat(highScore.filled).toFixed(2)}%</span>
+                      </div>
+                    </div>
+                    <div className="play-now-badge">PLAY NOW</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="random-option" onClick={() => onRestart()}>
+              <div className="board-option-name">Random Board</div>
+              <div className="board-option-desc">Surprise me with any board type!</div>
+              <div className="play-now-badge">PLAY NOW</div>
+            </div>
+            <button className="title-button back-to-title" onClick={onBackToTitle}>
+              <span className="button-icon">🏠</span> Back to Title
+            </button>
+          </div>
+        </>
+      ) : (
+        // Final Board View - Full Screen
+        <div className="final-board-view">
+          <h3>Final Snake Board</h3>
+          <div className="game-stats small-stats">
+            <div className="stat-card">
+              <div className="stat-title">Score</div>
+              <div className="stat-value">{score}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-title">Filled</div>
+              <div className="stat-value">{formattedFilledPercentage}%</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-title">Board</div>
+              <div className="stat-value">{boardStyle}</div>
+            </div>
+          </div>
+          <div className="final-game-board">
+            {finalBoard && Array.from({ length: finalBoard.length }).map((_, rowIndex) => (
+              <div key={rowIndex} className="board-row">
+                {Array.from({ length: finalBoard[0].length }).map((_, colIndex) => {
+                  // Check cell type
+                  const isWall = finalBoard[rowIndex]?.[colIndex] === 1;
+                  const isObstacle = finalBoard[rowIndex]?.[colIndex] === 2;
+                  
+                  // Check if current cell is part of the snake
+                  const isSnakeBody = finalSnake.some((segment, index) => 
+                    index > 0 && segment.x === colIndex && segment.y === rowIndex
+                  );
+                  // Check if current cell is the snake head
+                  const isSnakeHead = finalSnake.length > 0 && finalSnake[0].x === colIndex && finalSnake[0].y === rowIndex;
+                  
+                  return (
+                    <div 
+                      key={`${rowIndex}-${colIndex}`} 
+                      className={`board-cell ${isWall ? 'wall' : ''} ${isObstacle ? 'obstacle' : ''} ${isSnakeHead ? 'final-snake-head' : ''} ${isSnakeBody ? 'final-snake-body' : ''}`}
+                    ></div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          <button className="close-board-button" onClick={toggleFinalBoard}>
+            <span className="button-icon">↩️</span> Return to Game Over
+          </button>
         </div>
       )}
-      
-      <div className="game-stats">
-        <div className="stat-card">
-          <div className="stat-title">Your Score</div>
-          <div className="stat-value">{score}</div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-title">Board Filled</div>
-          <div className="stat-value">{formattedFilledPercentage}%</div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-title">Board Type</div>
-          <div className="stat-value">{boardStyle}</div>
-        </div>
-      </div>
-      
-      <div className="board-selector">
-        <h3>Select Board to Play Again</h3>
-        <div className="board-options">
-          {boardStyles.map((style, index) => {
-            const highScore = highScores[style.name] || { score: 0, filled: 0 };
-            return (
-              <div 
-                key={index} 
-                className={`board-option ${currentBoardIndex === index ? 'current-board' : ''}`}
-                onClick={() => onRestart(index)}
-              >
-                <div className="board-option-name">{style.name}</div>
-                <div className="board-option-desc">{style.description}</div>
-                <div className="high-score-details">
-                  <div className="high-score-item">
-                    <span className="high-score-label">Best Score:</span> 
-                    <span className="high-score-value">{highScore.score}</span>
-                  </div>
-                  <div className="high-score-item">
-                    <span className="high-score-label">Best Fill:</span> 
-                    <span className="high-score-value">{parseFloat(highScore.filled).toFixed(2)}%</span>
-                  </div>
-                </div>
-                <div className="play-now-badge">PLAY NOW</div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="random-option" onClick={() => onRestart()}>
-          <div className="board-option-name">Random Board</div>
-          <div className="board-option-desc">Surprise me with any board type!</div>
-          <div className="play-now-badge">PLAY NOW</div>
-        </div>
-        <button className="title-button back-to-title" onClick={onBackToTitle}>
-          <span className="button-icon">🏠</span> Back to Title
-        </button>
-      </div>
     </div>
   );
 }
@@ -455,7 +524,7 @@ function Game({ onGameOver, selectedBoardStyle }) {
       // Check for collision with walls or obstacles
       if (boardMap.board[head.y]?.[head.x] === 1 || boardMap.board[head.y]?.[head.x] === 2) {
         setGameRunning(false);
-        onGameOver(score, filledPercentage, boardMap.boardStyle);
+        onGameOver(score, filledPercentage, boardMap.boardStyle, boardMap.board, snake);
         return prevSnake;
       }
       
@@ -463,7 +532,7 @@ function Game({ onGameOver, selectedBoardStyle }) {
       for (let i = 0; i < newSnake.length; i++) {
         if (head.x === newSnake[i].x && head.y === newSnake[i].y) {
           setGameRunning(false);
-          onGameOver(score, filledPercentage, boardMap.boardStyle);
+          onGameOver(score, filledPercentage, boardMap.boardStyle, boardMap.board, snake);
           return prevSnake;
         }
       }
